@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registrar's Office — University of Bohol</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Rajdhani:wght@400;500;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #E8B800; --yellow: #F5C518; --red: #C0152A;
+      --blue: #0B2F6E; --blue-mid: #1A4A9A; --blue-light: #EBF0FA;
+      --white: #FFFFFF; --off-white: #F5F6F8; --black: #111111;
+      --gray: #6B7280; --gray-light: #E5E7EB; --border: #D1D5DB;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08); --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
+      --gold-pale: #FFFBEA; --success: #166534; --success-bg: #DCFCE7;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Barlow', sans-serif; background: var(--off-white); color: var(--black); min-height: 100vh; }
+
+    header {
+      background: var(--blue); border-bottom: 4px solid var(--yellow);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15); padding: 0 40px;
+      display: flex; align-items: center; justify-content: space-between; min-height: 76px;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .ub-logo { width: 58px; height: 58px; flex-shrink: 0; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); object-fit: cover; }
+    .brand { line-height: 1.2; }
+    .brand-main { font-family: 'Cinzel', serif; font-size: 1.3rem; font-weight: 900; color: var(--yellow); letter-spacing: 2px; }
+    .brand-sub { font-family: 'Rajdhani', sans-serif; font-size: 0.72rem; letter-spacing: 2px; color: rgba(255,255,255,0.72); text-transform: uppercase; }
+    .brand-full { font-family: 'Rajdhani', sans-serif; font-size: 0.65rem; letter-spacing: 1px; color: rgba(255,255,255,0.42); text-transform: uppercase; margin-top: 1px; }
+    .header-right { font-family: 'Rajdhani', sans-serif; font-size: 0.82rem; color: rgba(255,255,255,0.65); text-align: right; line-height: 1.5; }
+    .header-right strong { color: var(--yellow); }
+    #header-user-info { display: none; }
+    .portal-badge { display: inline-block; padding: 3px 12px; background: rgba(245,197,24,0.18); border: 1px solid rgba(245,197,24,0.4); border-radius: 20px; font-family: 'Rajdhani', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px; color: var(--yellow); text-transform: uppercase; margin-top: 6px; }
+
+    nav { background: var(--white); display: flex; justify-content: center; padding: 0 20px; border-bottom: 2px solid var(--gray-light); flex-wrap: wrap; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+    nav button { background: none; border: none; border-bottom: 3px solid transparent; margin-bottom: -2px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray); padding: 12px 20px; transition: all .18s; }
+    nav button:hover, nav button.active { color: var(--blue); background: var(--blue-light); border-bottom-color: var(--red); }
+    #main-nav { display: none; }
+
+    .page { display: none; min-height: calc(100vh - 140px); }
+    .page.active { display: block; }
+
+    /* LOGIN */
+    #page-login { display: none; align-items: center; justify-content: center; padding: 60px 20px; min-height: calc(100vh - 80px); background: var(--off-white); }
+    #page-login.active { display: flex; }
+    .login-card { width: 100%; max-width: 420px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-md); padding: 44px 38px; text-align: center; }
+    .login-logo-wrap { display: flex; justify-content: center; margin-bottom: 14px; }
+    .login-logo { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--yellow); object-fit: cover; }
+    .login-title { font-family: 'Cinzel', serif; font-size: 1.45rem; font-weight: 900; color: var(--blue); margin-bottom: 4px; }
+    .login-subtitle { font-family: 'Rajdhani', sans-serif; font-size: 0.75rem; letter-spacing: 2px; color: var(--red); text-transform: uppercase; margin-bottom: 3px; font-weight: 700; }
+    .login-fullname { font-family: 'Rajdhani', sans-serif; font-size: 0.66rem; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; margin-bottom: 22px; }
+    .login-role-tag { display: inline-block; padding: 4px 16px; background: var(--blue-light); border: 1px solid rgba(11,47,110,0.2); border-radius: 20px; font-family: 'Rajdhani', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px; color: var(--blue); text-transform: uppercase; margin-bottom: 20px; }
+
+    .form-group { margin-bottom: 14px; text-align: left; }
+    .form-group label { display: block; font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); margin-bottom: 5px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 13px; background: var(--white); border: 1px solid var(--border); border-radius: 7px; color: var(--black); font-family: 'Barlow', sans-serif; font-size: 0.93rem; transition: border-color .2s, box-shadow .2s; outline: none; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(11,47,110,0.1); }
+    .form-group input::placeholder, .form-group textarea::placeholder { color: var(--gray); opacity: 0.55; }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    /* Radio/Checkbox row */
+    .radio-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .radio-item { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .radio-item input[type=radio] { accent-color: var(--blue); width: 16px; height: 16px; cursor: pointer; }
+    .radio-item span { font-family: 'Barlow', sans-serif; font-size: 0.9rem; color: var(--black); cursor: pointer; }
+
+    .btn-primary { width: 100%; padding: 12px; background: var(--blue); border: none; border-radius: 7px; color: var(--white); cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.93rem; letter-spacing: 2px; text-transform: uppercase; transition: all .2s; margin-top: 6px; }
+    .btn-primary:hover { background: var(--blue-mid); box-shadow: 0 4px 12px rgba(11,47,110,0.22); transform: translateY(-1px); }
+    .btn-sm { padding: 7px 18px; background: var(--white); border: 1px solid var(--red); border-radius: 6px; color: var(--red); cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; transition: all .18s; }
+    .btn-sm:hover { background: var(--red); color: var(--white); }
+    .btn-blue { padding: 7px 18px; background: var(--white); border: 1px solid var(--blue); border-radius: 6px; color: var(--blue); cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; transition: all .18s; }
+    .btn-blue:hover { background: var(--blue); color: var(--white); }
+    .btn-back { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; background: var(--white); border: 1px solid var(--border); border-radius: 7px; color: var(--blue); cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; transition: all .18s; margin-bottom: 24px; }
+    .btn-back:hover { background: var(--blue); color: var(--white); border-color: var(--blue); }
+    .btn-back::before { content: '←'; font-size: 1rem; }
+    .msg { margin-top: 10px; font-size: 0.85rem; border-radius: 6px; padding: 10px 14px; }
+    .msg.error { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .msg.success { background: var(--success-bg); color: var(--success); border: 1px solid #BBF7D0; }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; margin-right: 7px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* PORTAL */
+    #page-portal { padding: 40px; background: var(--off-white); }
+    .portal-welcome { margin-bottom: 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    .portal-welcome h1 { font-family: 'Cinzel', serif; font-size: 1.45rem; color: var(--blue); }
+    .portal-welcome p { color: var(--gray); font-size: 0.88rem; margin-top: 3px; }
+    .section-title { font-family: 'Rajdhani', sans-serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 2px; color: var(--blue); text-transform: uppercase; border-bottom: 2px solid var(--yellow); padding-bottom: 8px; margin-bottom: 22px; display: inline-block; }
+
+    /* Document cards */
+    .doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; margin-bottom: 40px; }
+    .doc-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 22px 18px; cursor: pointer; transition: all .2s; text-align: center; position: relative; overflow: hidden; }
+    .doc-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--blue); transform: scaleX(0); transition: transform .2s; transform-origin: left; }
+    .doc-card:hover { transform: translateY(-3px); border-color: var(--blue); box-shadow: var(--shadow-md); }
+    .doc-card:hover::before { transform: scaleX(1); }
+    .doc-icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .doc-name { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.88rem; letter-spacing: 0.5px; text-transform: uppercase; color: var(--blue); margin-bottom: 4px; }
+    .doc-price { font-family: 'Barlow', sans-serif; font-size: 0.78rem; color: var(--gray); }
+    .doc-price strong { color: var(--red); }
+
+    .history-panel { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 24px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+    table th { font-family: 'Rajdhani', sans-serif; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--blue); font-size: 0.75rem; padding: 10px 12px; border-bottom: 2px solid var(--yellow); text-align: left; background: var(--off-white); }
+    table td { padding: 11px 12px; border-bottom: 1px solid var(--gray-light); color: var(--black); }
+    table tr:hover td { background: var(--blue-light); }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.70rem; font-weight: 700; letter-spacing: 0.5px; font-family: 'Rajdhani', sans-serif; }
+    .badge-blue { background: var(--blue-light); color: var(--blue); border: 1px solid rgba(11,47,110,0.2); }
+    .badge-red { background: #FEE2E2; color: var(--red); border: 1px solid #FECACA; }
+    .badge-gold { background: #FFFBEA; color: #8a6d00; border: 1px solid #FDE68A; }
+    .badge-green { background: var(--success-bg); color: var(--success); border: 1px solid #BBF7D0; }
+
+    #page-history { padding: 40px; background: var(--off-white); }
+
+    /* MODAL */
+    .modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.45); backdrop-filter: blur(2px); display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 36px; width: 100%; max-width: 600px; box-shadow: var(--shadow-md); position: relative; max-height: 90vh; overflow-y: auto; }
+    .modal-title { font-family: 'Cinzel', serif; color: var(--blue); font-size: 1.1rem; margin-bottom: 20px; border-bottom: 2px solid var(--yellow); padding-bottom: 10px; }
+    .modal-close { float: right; background: none; border: none; color: var(--gray); cursor: pointer; font-size: 1.3rem; margin-top: -4px; }
+    .modal-close:hover { color: var(--red); }
+
+    /* Upload area */
+    .upload-area { border: 2px dashed var(--border); border-radius: 8px; padding: 24px; text-align: center; cursor: pointer; transition: all .2s; background: var(--off-white); }
+    .upload-area:hover { border-color: var(--blue); background: var(--blue-light); }
+    .upload-area.has-file { border-color: var(--success); background: var(--success-bg); }
+    .upload-area p { font-size: 0.85rem; color: var(--gray); margin-top: 6px; }
+    .upload-area .upload-icon { font-size: 2rem; display: block; margin-bottom: 8px; }
+    .upload-area input[type=file] { display: none; }
+
+    /* QR */
+    .qr-stub { background: var(--off-white); border: 1px solid var(--border); border-radius: 10px; padding: 20px; font-size: 0.85rem; color: var(--black); line-height: 1.7; text-align: left; margin-bottom: 14px; }
+    .qr-stub .stub-row { display: flex; gap: 8px; }
+    .qr-stub .stub-label { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); min-width: 130px; }
+    .qr-stub .stub-val { color: var(--blue); font-weight: 500; }
+
+    .admin-link-bar { text-align: center; margin-top: 16px; }
+    .admin-link-bar a { font-family: 'Rajdhani', sans-serif; font-size: 0.78rem; color: var(--gray); letter-spacing: 1px; text-decoration: none; text-transform: uppercase; }
+    .admin-link-bar a:hover { color: var(--blue); }
+
+    /* Info box */
+    .info-note { background: var(--blue-light); border: 1px solid rgba(11,47,110,0.15); border-radius: 7px; padding: 10px 14px; font-size: 0.82rem; color: var(--blue-mid); margin-bottom: 14px; }
+
+    /* Custom checkbox dropdown */
+    .cb-dropdown-wrap { position: relative; }
+    .cb-dropdown-trigger { width: 100%; padding: 10px 13px; background: var(--white); border: 1px solid var(--border); border-radius: 7px; color: var(--black); font-family: 'Barlow', sans-serif; font-size: 0.93rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: border-color .2s, box-shadow .2s; outline: none; user-select: none; }
+    .cb-dropdown-trigger:focus, .cb-dropdown-trigger.open { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(11,47,110,0.1); }
+    .cb-dropdown-trigger .trigger-text { color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 24px); }
+    .cb-dropdown-trigger .trigger-text.placeholder { color: var(--gray); opacity: 0.55; }
+    .cb-dropdown-trigger .arrow { font-size: 0.7rem; color: var(--gray); flex-shrink: 0; transition: transform .2s; }
+    .cb-dropdown-trigger.open .arrow { transform: rotate(180deg); }
+    .cb-dropdown-panel { display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--white); border: 1px solid var(--blue); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 200; max-height: 280px; overflow-y: auto; }
+    .cb-dropdown-panel.open { display: block; }
+    .cb-dropdown-search { padding: 8px 10px; border-bottom: 1px solid var(--gray-light); }
+    .cb-dropdown-search input { width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 5px; font-family: 'Barlow', sans-serif; font-size: 0.85rem; outline: none; }
+    .cb-dropdown-search input:focus { border-color: var(--blue); }
+    .cb-option { display: flex; align-items: flex-start; gap: 10px; padding: 9px 14px; cursor: pointer; transition: background .12s; border-bottom: 1px solid var(--gray-light); }
+    .cb-option:last-child { border-bottom: none; }
+    .cb-option:hover { background: var(--blue-light); }
+    .cb-option.selected { background: #EBF0FA; }
+    .cb-option input[type=checkbox] { accent-color: var(--blue); width: 15px; height: 15px; cursor: pointer; margin-top: 2px; flex-shrink: 0; }
+    .cb-option-label { font-family: 'Barlow', sans-serif; font-size: 0.88rem; color: var(--black); line-height: 1.3; }
+    .cb-option-price { font-size: 0.75rem; color: var(--red); font-weight: 600; }
+    .cb-option-note { font-size: 0.72rem; color: var(--gray); }
+    .cb-selected-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .cb-tag { display: inline-flex; align-items: center; gap: 5px; background: var(--blue-light); border: 1px solid rgba(11,47,110,0.25); border-radius: 20px; padding: 3px 10px; font-family: 'Rajdhani', sans-serif; font-size: 0.75rem; font-weight: 700; color: var(--blue); letter-spacing: 0.5px; }
+    .cb-tag .tag-remove { cursor: pointer; color: var(--red); font-size: 0.9rem; line-height: 1; margin-left: 2px; }
+    .cb-tag .tag-remove:hover { color: var(--red); opacity: 0.7; }
+
+    /* Window badge */
+    .window-badge { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--blue) 0%, var(--blue-mid) 100%); color: var(--white); border-radius: 8px; padding: 10px 16px; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 1rem; letter-spacing: 1px; margin-bottom: 4px; }
+    .window-badge .win-num { background: var(--yellow); color: var(--blue); border-radius: 5px; padding: 2px 10px; font-size: 1.1rem; font-family: 'Cinzel', serif; }
+    .window-list-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 0.83rem; border-bottom: 1px dashed var(--gray-light); }
+    .window-list-item:last-child { border-bottom: none; }
+    .window-list-item .wl-win { font-family: 'Rajdhani', sans-serif; font-weight: 700; color: var(--blue); min-width: 72px; }
+    .window-list-item .wl-docs { color: var(--gray); }
+
+    @media(max-width:600px) {
+      header { padding: 0 16px; } #page-portal { padding: 24px 16px; }
+      .doc-grid { grid-template-columns: 1fr 1fr; } #page-history { padding: 24px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-left">
+    <img class="ub-logo" id="header-logo" src="" alt="UB Logo">
+    <div class="brand">
+      <div class="brand-main">University of Bohol</div>
+      <div class="brand-sub">Registrar's Office</div>
+      <div class="brand-full">City of Tagbilaran, Bohol, Philippines</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div id="header-user-info">
+      <strong id="header-email"></strong><br>
+      <div class="portal-badge">Student Portal</div>
+    </div>
+    <div id="header-portal-badge" style="display:none;"><div class="portal-badge">Student Portal</div></div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <button id="nav-portal" onclick="showPage('portal')">🏠 Dashboard</button>
+  <button id="nav-request" onclick="showPage('request')">📋 New Request</button>
+  <button id="nav-history" onclick="showPage('history')">📜 My Requests</button>
+  <button onclick="doLogout()" style="color:var(--red);">⬛ Logout</button>
+</nav>
+
+<!-- ════ LOGIN PAGE ════ -->
+<div id="page-login" class="page active">
+  <div class="login-card">
+    <div class="login-logo-wrap">
+      <img class="login-logo" id="login-logo" src="" alt="UB Logo">
+    </div>
+    <div class="login-title">University of Bohol</div>
+    <div class="login-subtitle">Registrar's Office</div>
+    <div class="login-fullname">Student Document Request Portal</div>
+    <div class="login-role-tag">Student / Alumni Access</div>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="student-email" placeholder="yourname@email.com" autocomplete="email">
+    </div>
+    <div id="login-msg"></div>
+    <button class="btn-primary" onclick="studentLogin()">
+      <span class="spinner" id="login-spinner" style="display:none;"></span>Continue with Email
+    </button>
+    <div class="admin-link-bar" style="margin-top:18px;">
+      <a href="ub_registrar_admin.html">Admin Portal →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PORTAL DASHBOARD ════ -->
+<div id="page-portal" class="page">
+  <div style="padding:40px;">
+    <div class="portal-welcome">
+      <div>
+        <h1>Welcome back 👋</h1>
+        <p id="portal-email-display" style="color:var(--gray);font-size:0.9rem;margin-top:2px;"></p>
+      </div>
+      <button class="btn-back" onclick="showPage('request')" style="margin-bottom:0;">📋 New Request</button>
+    </div>
+
+    <div class="section-title">Recent Requests</div>
+    <div class="history-panel">
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Document(s)</th><th>Status</th><th>Submitted</th><th>QR / Claim</th></tr></thead>
+          <tbody id="portal-history-body"><tr><td colspan="4" style="color:var(--gray);text-align:center;padding:20px;">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ NEW REQUEST PAGE ════ -->
+<div id="page-request" class="page">
+  <div style="padding:40px;max-width:780px;margin:0 auto;">
+    <div class="section-title">Request Documents</div>
+    <div class="info-note">💡 Select the document(s) you need. Fill in the request form and upload your proof of payment.</div>
+
+    <!-- Step 1: Personal Info -->
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:28px;margin-bottom:20px;">
+      <div class="section-title" style="margin-bottom:16px;">Step 1 — Personal Information</div>
+
+      <div class="form-group">
+        <label>Title</label>
+        <div class="radio-row">
+          <label class="radio-item"><input type="radio" name="title" value="Mr."> <span>Mr.</span></label>
+          <label class="radio-item"><input type="radio" name="title" value="Mrs."> <span>Mrs.</span></label>
+          <label class="radio-item"><input type="radio" name="title" value="Ms."> <span>Ms.</span></label>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Family Name *</label>
+          <input type="text" id="req-fname" placeholder="Dela Cruz">
+        </div>
+        <div class="form-group">
+          <label>First Name *</label>
+          <input type="text" id="req-given" placeholder="Juan">
+        </div>
+        <div class="form-group">
+          <label>Middle Name</label>
+          <input type="text" id="req-mname" placeholder="Santos">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Last Course / Program Attended in UB *</label>
+          <input type="text" id="req-course" placeholder="BS Computer Science">
+        </div>
+        <div class="form-group">
+          <label>Cellphone # *</label>
+          <input type="text" id="req-phone" placeholder="09XXXXXXXXX" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        </div>
+      </div>
+
+      <!-- Academic Year multi-select dropdown -->
+      <div class="form-group">
+        <label>Academic Year(s) Being Requested *</label>
+        <div class="cb-dropdown-wrap" id="ay-dropdown-wrap">
+          <div class="cb-dropdown-trigger" id="ay-trigger" tabindex="0" onclick="toggleDropdown('ay')">
+            <span class="trigger-text placeholder" id="ay-trigger-text">Select academic year(s)&#8230;</span>
+            <span class="arrow">&#9660;</span>
+          </div>
+          <div class="cb-dropdown-panel" id="ay-panel">
+            <div class="cb-dropdown-search"><input type="text" placeholder="Search year&#8230;" oninput="filterDropdown('ay', this.value)" id="ay-search"></div>
+            <div id="ay-options"></div>
+          </div>
+        </div>
+        <div class="cb-selected-tags" id="ay-tags"></div>
+      </div>
+
+      <!-- Semester dropdown -->
+      <div class="form-group">
+        <label>Semester *</label>
+        <select id="req-semester">
+          <option value="" disabled selected>Select semester&#8230;</option>
+          <option value="1st Semester">1st Semester</option>
+          <option value="2nd Semester">2nd Semester</option>
+          <option value="Summer Class">Summer Class</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Purpose of Request *</label>
+        <textarea id="req-purpose" placeholder="e.g. Employment, Scholarship application, Personal record&#8230;" rows="3"></textarea>
+      </div>
+    </div>
+
+    <!-- Step 2: Documents -->
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:28px;margin-bottom:20px;">
+      <div class="section-title" style="margin-bottom:16px;">Step 2 &#8212; Select Document(s)</div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Documents Requested *</label>
+        <div class="cb-dropdown-wrap" id="doc-dropdown-wrap">
+          <div class="cb-dropdown-trigger" id="doc-trigger" tabindex="0" onclick="toggleDropdown('doc')">
+            <span class="trigger-text placeholder" id="doc-trigger-text">Select document(s)&#8230;</span>
+            <span class="arrow">&#9660;</span>
+          </div>
+          <div class="cb-dropdown-panel" id="doc-panel">
+            <div class="cb-dropdown-search"><input type="text" placeholder="Search document&#8230;" oninput="filterDropdown('doc', this.value)" id="doc-search"></div>
+            <div id="doc-options"></div>
+          </div>
+        </div>
+        <div class="cb-selected-tags" id="doc-tags"></div>
+      </div>
+      <div id="doc-total-display" style="text-align:right;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;color:var(--blue);margin-top:12px;display:none;">
+        Total: <span id="doc-total-amount" style="color:var(--red);font-size:1.15rem;">&#8369;0</span>
+      </div>
+    </div>
+
+    <!-- Step 3: Auth Rep (if not owner) -->
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:28px;margin-bottom:20px;">
+      <div class="section-title" style="margin-bottom:16px;">Step 3 — Authorized Representative (if not the owner)</div>
+      <div class="form-group">
+        <label>Name of Authorized Representative</label>
+        <input type="text" id="req-rep-name" placeholder="Full name (leave blank if you are the owner)">
+      </div>
+      <div class="form-group">
+        <label>Signature / Authorization Letter (upload photo)</label>
+        <div class="upload-area" id="auth-upload-area" onclick="document.getElementById('auth-file').click()">
+          <span class="upload-icon">📎</span>
+          <strong>Click to upload</strong>
+          <p>Photo of signed authorization letter or ID of representative</p>
+          <input type="file" id="auth-file" accept="image/*,.pdf" onchange="handleAuthUpload(event)">
+        </div>
+        <div id="auth-file-name" style="font-size:0.8rem;color:var(--success);margin-top:6px;display:none;"></div>
+      </div>
+    </div>
+
+    <!-- Step 4: Proof of Payment -->
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:28px;margin-bottom:24px;">
+      <div class="section-title" style="margin-bottom:16px;">Step 4 — Proof of Payment</div>
+      <div class="info-note">Pay at the <strong>UB Finance Office (Window/Cashier)</strong> or via <strong>GCash / online transfer</strong>. Upload your receipt below.</div>
+      <div class="form-group">
+        <div class="upload-area" id="payment-upload-area" onclick="document.getElementById('payment-file').click()">
+          <span class="upload-icon">🧾</span>
+          <strong>Click to upload proof of payment</strong>
+          <p>Accepted: JPG, PNG, PDF</p>
+          <input type="file" id="payment-file" accept="image/*,.pdf" onchange="handlePaymentUpload(event)">
+        </div>
+        <div id="payment-file-name" style="font-size:0.8rem;color:var(--success);margin-top:6px;display:none;"></div>
+      </div>
+    </div>
+
+    <div id="req-msg" style="margin-bottom:14px;"></div>
+    <button class="btn-primary" onclick="submitRequest()">
+      <span class="spinner" id="req-spinner" style="display:none;"></span>Submit Request
+    </button>
+  </div>
+</div>
+
+<!-- ════ HISTORY PAGE ════ -->
+<div id="page-history" class="page">
+  <div style="padding:40px;">
+    <div class="section-title">All My Requests</div>
+    <div class="history-panel">
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Document(s)</th><th>Status</th><th>Submitted</th><th>QR / Claim</th></tr></thead>
+          <tbody id="full-history-body"><tr><td colspan="4" style="color:var(--gray);text-align:center;padding:20px;">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ QR CLAIM STUB MODAL ════ -->
+<div id="qr-display-modal" class="modal-overlay">
+  <div class="modal" style="text-align:center;max-width:480px;">
+    <button class="modal-close" onclick="document.getElementById('qr-display-modal').classList.remove('open')">✕</button>
+    <div class="modal-title" style="text-align:left;">🎉 Request Submitted!</div>
+    <p style="font-size:0.85rem;color:var(--gray);margin-bottom:18px;text-align:left;">Present this QR code and claim stub when picking up your documents at the Registrar's Office.</p>
+    <div id="student-qr-display" style="background:white;padding:16px;border-radius:12px;border:2px solid var(--yellow);display:inline-block;margin-bottom:16px;"></div>
+    <div class="qr-stub" id="student-qr-info"></div>
+    <div id="claim-window-info" style="margin-bottom:14px;"></div>
+    <p style="font-size:0.8rem;color:var(--gray);text-align:left;">📧 A copy has been sent to your email. The Registrar will notify you once your documents are ready.</p>
+  </div>
+</div>
+
+<script>
+  // ── CONFIG ──
+  const SUPABASE_URL = 'https://loptucjttggxleiliygn.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvcHR1Y2p0dGdneGxlaWxpeWduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNjI4NjcsImV4cCI6MjA5MTYzODg2N30.Vw7vNvNCUjVQ-DB4dLt1RZ4IlB5wg5J6pBj10vJ2bnM';
+  const EMAILJS_SERVICE_ID  = 'service_zvucg1c';
+  const EMAILJS_TEMPLATE_ID = 'template_ki376d9';
+  const EMAILJS_PUBLIC_KEY  = 'vcLeXe5pdCznA27op';
+
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+  emailjs.init(EMAILJS_PUBLIC_KEY);
+
+  let currentUser = null;
+  let authFileBase64   = null;
+  let paymentFileBase64 = null;
+
+  // ── Document catalog ──
+  const DOCUMENTS = [
+    { code: 'GRADE_SLIP', name: 'Grade Slip',                       price: 50,  icon: '📊', window: 3 },
+    { code: 'STUDY_LOAD', name: 'Study Load',                       price: 50,  icon: '📋', window: 3 },
+    { code: 'TOR',        name: 'Transcript of Records',            price: 100, note: '1st 2 pages; extra ₱50/page', icon: '📄', window: 6 },
+    { code: 'HD',         name: 'Honorable Dismissal',              price: 100, icon: '📜', window: 6 },
+    { code: 'CERT_ENROLL',name: 'Cert. of Enrollment',              price: 100, icon: '📋', window: 6 },
+    { code: 'CERT_EMP',   name: 'Cert. of Employment',              price: 100, icon: '💼', window: 6 },
+    { code: 'CERT_GMC',   name: 'Cert. of Good Moral Character',    price: 100, icon: '🏅', window: 6 },
+    { code: 'CERT_MED',   name: 'Cert. of Medium of Instruction',   price: 100, icon: '📚', window: 6 },
+    { code: 'CERT_HON',   name: 'Cert. Graduated with Honors',      price: 100, icon: '🎓', window: 6 },
+    { code: 'CERT_UNITS', name: 'Cert. of Units Earned',            price: 100, icon: '🔢', window: 6 },
+    { code: 'CERT_GRADES',name: 'Cert. of Grades',                  price: 100, icon: '📈', window: 6 },
+    { code: 'CERT_NOO',   name: 'Cert. of No Objection',            price: 100, icon: '✅', window: 6 },
+    { code: 'CERT_GPA',   name: 'Cert. of GPA',                     price: 100, icon: '📊', window: 6 },
+    { code: 'CERT_CAR',   name: 'Cert. of C.A.R.',                  price: 250, icon: '📑', window: 6 },
+    { code: 'DIPLOMA_RE', name: 'Diploma Re-issuance',              price: 200, icon: '🎖️', window: 6 },
+    { code: 'GHC',        name: 'General Honorable Certificate',     price: 200, icon: '🏆', window: 6 },
+    { code: 'AUTH',       name: 'Authentication (1st 10 pages)',     price: 50,  note: '₱10/page after 10 pages', icon: '🔏', window: 6 },
+    { code: 'FORM137A',   name: 'Form 137-A (per page)',             price: 100, icon: '🗂️', window: 4 },
+    { code: 'TOR_GRANTED',name: 'TOR Granted',                      price: 100, icon: '📄', window: 5 },
+    { code: 'VERIFICATION',name: 'Verification',                    price: 100, icon: '🔍', window: 5 },
+    { code: 'CORR_NAME',  name: 'Correction of Name Requirement',   price: 100, icon: '✏️', window: 6 },
+    { code: 'SYLLABUS',   name: 'Syllabus',                         price: 250, icon: '📒', window: 6 },
+    { code: 'ENDORSE',    name: 'Endorsement Letter',               price: 100, icon: '📬', window: 6 },
+    { code: 'RLE',        name: 'R.L.E.',                           price: 100, icon: '📝', window: 6 },
+    { code: 'PERMIT',     name: 'Permit to Study',                  price: 100, icon: '🎫', window: 6 },
+    { code: 'SPL_ORDER',  name: 'Special Order',                    price: 300, icon: '📜', window: 6 },
+    { code: 'PHOTOCOPY',  name: 'Photocopy (per page)',             price: 3,   icon: '🖨️', window: 6 },
+    { code: 'OTHER',      name: 'Others',                           price: 0,   note: 'See Registrar', icon: '📦', window: 6 },
+  ];
+
+  // Window descriptions
+  const WINDOW_DESC = {
+    3: 'Grade Slip & Study Load',
+    4: 'Form 137-A',
+    5: 'TOR Granted & Verification',
+    6: 'TOR, HD, Certifications, Diploma, GHC & Authentication'
+  };
+
+  // Academic years (current year going back 20 years)
+  function buildAcademicYears() {
+    const years = [];
+    const now = new Date().getFullYear();
+    for (let y = now; y >= now - 20; y--) {
+      years.push(`${y}–${y+1}`);
+    }
+    return years;
+  }
+
+  let selectedDocs = {};
+  let selectedAYs  = {};
+
+  // ── Generic checkbox dropdown engine ──
+  function buildDocDropdown() {
+    const container = document.getElementById('doc-options');
+    container.innerHTML = DOCUMENTS.map(doc => `
+      <div class="cb-option" id="cbopt-${doc.code}" onclick="toggleDocOpt('${doc.code}')">
+        <input type="checkbox" id="cbchk-${doc.code}" onchange="toggleDocOpt('${doc.code}')" onclick="event.stopPropagation()">
+        <div class="cb-option-label">
+          ${doc.icon} ${doc.name}
+          <span class="cb-option-price"> — ₱${doc.price > 0 ? doc.price.toLocaleString() : 'Varies'}</span>
+          ${doc.note ? `<div class="cb-option-note">${doc.note}</div>` : ''}
+        </div>
+      </div>`).join('');
+  }
+
+  function buildAYDropdown() {
+    const container = document.getElementById('ay-options');
+    const years = buildAcademicYears();
+    container.innerHTML = years.map(y => `
+      <div class="cb-option" id="ayopt-${y.replace(/[^a-z0-9]/gi,'_')}" onclick="toggleAYOpt('${y}')">
+        <input type="checkbox" id="aychk-${y.replace(/[^a-z0-9]/gi,'_')}" onchange="toggleAYOpt('${y}')" onclick="event.stopPropagation()">
+        <div class="cb-option-label">📅 ${y}</div>
+      </div>`).join('');
+  }
+
+  function toggleDropdown(which) {
+    const panel   = document.getElementById(which + '-panel');
+    const trigger = document.getElementById(which + '-trigger');
+    const isOpen  = panel.classList.contains('open');
+    // Close all
+    document.querySelectorAll('.cb-dropdown-panel').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.cb-dropdown-trigger').forEach(t => t.classList.remove('open'));
+    if (!isOpen) {
+      panel.classList.add('open');
+      trigger.classList.add('open');
+      const search = document.getElementById(which + '-search');
+      if (search) { search.value = ''; filterDropdown(which, ''); setTimeout(() => search.focus(), 50); }
+    }
+  }
+
+  function filterDropdown(which, val) {
+    const lower = val.toLowerCase();
+    const opts = document.querySelectorAll(which === 'doc' ? '#doc-options .cb-option' : '#ay-options .cb-option');
+    opts.forEach(opt => {
+      const text = opt.querySelector('.cb-option-label').textContent.toLowerCase();
+      opt.style.display = text.includes(lower) ? '' : 'none';
+    });
+  }
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.cb-dropdown-wrap')) {
+      document.querySelectorAll('.cb-dropdown-panel').forEach(p => p.classList.remove('open'));
+      document.querySelectorAll('.cb-dropdown-trigger').forEach(t => t.classList.remove('open'));
+    }
+  });
+
+  function toggleDocOpt(code) {
+    const opt = document.getElementById('cbopt-' + code);
+    const chk = document.getElementById('cbchk-' + code);
+    if (selectedDocs[code]) {
+      delete selectedDocs[code];
+      chk.checked = false;
+      opt.classList.remove('selected');
+    } else {
+      selectedDocs[code] = true;
+      chk.checked = true;
+      opt.classList.add('selected');
+    }
+    renderDocTags();
+    updateTotal();
+  }
+
+  function toggleAYOpt(year) {
+    const key = year.replace(/[^a-z0-9]/gi,'_');
+    const opt = document.getElementById('ayopt-' + key);
+    const chk = document.getElementById('aychk-' + key);
+    if (selectedAYs[year]) {
+      delete selectedAYs[year];
+      chk.checked = false;
+      opt.classList.remove('selected');
+    } else {
+      selectedAYs[year] = true;
+      chk.checked = true;
+      opt.classList.add('selected');
+    }
+    renderAYTags();
+    updateAYTrigger();
+  }
+
+  function renderDocTags() {
+    const tags = document.getElementById('doc-tags');
+    const codes = Object.keys(selectedDocs);
+    tags.innerHTML = codes.map(c => {
+      const doc = DOCUMENTS.find(d => d.code === c);
+      return doc ? `<span class="cb-tag">${doc.icon} ${doc.name} <span class="tag-remove" onclick="removeDocTag('${c}')">✕</span></span>` : '';
+    }).join('');
+    const trigger = document.getElementById('doc-trigger-text');
+    if (codes.length === 0) { trigger.textContent = 'Select document(s)…'; trigger.classList.add('placeholder'); }
+    else { trigger.textContent = codes.length + ' document' + (codes.length > 1 ? 's' : '') + ' selected'; trigger.classList.remove('placeholder'); }
+  }
+
+  function renderAYTags() {
+    const tags = document.getElementById('ay-tags');
+    const years = Object.keys(selectedAYs);
+    tags.innerHTML = years.map(y => `<span class="cb-tag">📅 ${y} <span class="tag-remove" onclick="removeAYTag('${y}')">✕</span></span>`).join('');
+  }
+
+  function updateAYTrigger() {
+    const years = Object.keys(selectedAYs);
+    const trigger = document.getElementById('ay-trigger-text');
+    if (years.length === 0) { trigger.textContent = 'Select academic year(s)…'; trigger.classList.add('placeholder'); }
+    else { trigger.textContent = years.join(', '); trigger.classList.remove('placeholder'); }
+  }
+
+  function removeDocTag(code) { if (selectedDocs[code]) { toggleDocOpt(code); } }
+  function removeAYTag(year)  { if (selectedAYs[year])  { toggleAYOpt(year); } }
+
+  function updateTotal() {
+    const codes = Object.keys(selectedDocs);
+    const totalEl = document.getElementById('doc-total-display');
+    if (!codes.length) { totalEl.style.display = 'none'; return; }
+    totalEl.style.display = 'block';
+    let total = 0;
+    codes.forEach(c => { const d = DOCUMENTS.find(x => x.code === c); if (d) total += d.price; });
+    document.getElementById('doc-total-amount').textContent = '₱' + total.toLocaleString();
+  }
+
+  // Compute claim windows for selected docs
+  function getClaimWindows(docCodes) {
+    const byWindow = {};
+    docCodes.forEach(code => {
+      const doc = DOCUMENTS.find(d => d.code === code);
+      if (!doc) return;
+      const w = doc.window || 6;
+      if (!byWindow[w]) byWindow[w] = [];
+      byWindow[w].push(doc.name);
+    });
+    return byWindow;
+  }
+
+  function renderClaimWindowInfo(docCodes) {
+    const byWindow = getClaimWindows(docCodes);
+    const winNums = Object.keys(byWindow).sort();
+    if (!winNums.length) return '';
+    let html = `<div style="background:var(--blue-light);border:1px solid rgba(11,47,110,0.18);border-radius:9px;padding:14px 16px;">
+      <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin-bottom:10px;">🪟 Where to Claim Your Documents</div>`;
+    winNums.forEach(w => {
+      html += `<div class="window-list-item">
+        <span class="wl-win">Window ${w}</span>
+        <span class="wl-docs">${byWindow[w].join(', ')}</span>
+      </div>`;
+    });
+    html += `</div>`;
+    return html;
+  }
+
+  // ── Load UB logo ──
+  function loadLogo() {
+    // Try to use the uploaded logo via a data URL trick — reference by filename
+    // Since we can't embed it at build time, we leave as initials fallback
+    const logoSrc = 'UB_LOGO.jpg'; // Place UB_LOGO.jpg in the same folder as this HTML
+    [document.getElementById('header-logo'), document.getElementById('login-logo')].forEach(img => {
+      if (img) { img.src = logoSrc; img.onerror = () => { img.style.display = 'none'; }; }
+    });
+  }
+
+  // ── Auth ──
+  async function studentLogin() {
+    const email  = document.getElementById('student-email').value.trim().toLowerCase();
+    const msgEl  = document.getElementById('login-msg');
+    const spinner = document.getElementById('login-spinner');
+    if (!email || !isValidEmail(email)) { showMsg(msgEl, 'error', 'Please enter a valid email address.'); return; }
+    spinner.style.display = 'inline-block';
+
+    // Upsert: insert if not exists, or just fetch
+    const { data: existing } = await db.from('registrar_users').select('*').eq('email', email).single();
+    if (!existing) {
+      const { error: insertErr } = await db.from('registrar_users').insert([{ email, created_at: new Date().toISOString() }]);
+      if (insertErr && !insertErr.message.includes('duplicate')) {
+        spinner.style.display = 'none';
+        showMsg(msgEl, 'error', 'Could not create account: ' + insertErr.message);
+        return;
+      }
+    }
+
+    const { data: user } = await db.from('registrar_users').select('*').eq('email', email).single();
+    spinner.style.display = 'none';
+    if (!user) { showMsg(msgEl, 'error', 'Login failed. Please try again.'); return; }
+
+    currentUser = user;
+    document.getElementById('header-email').textContent = user.email;
+    document.getElementById('header-user-info').style.display = 'block';
+    document.getElementById('main-nav').style.display = 'flex';
+    document.getElementById('portal-email-display').textContent = 'Logged in as: ' + user.email;
+    showPage('portal');
+  }
+
+  function doLogout() {
+    currentUser = null;
+    document.getElementById('header-user-info').style.display = 'none';
+    document.getElementById('main-nav').style.display = 'none';
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-login').classList.add('active');
+    document.getElementById('student-email').value = '';
+    document.getElementById('login-msg').innerHTML = '';
+  }
+
+  function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+  // ── File handlers ──
+  function handleAuthUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const rd = new FileReader();
+    rd.onload = ev => {
+      authFileBase64 = ev.target.result;
+      document.getElementById('auth-upload-area').classList.add('has-file');
+      const nm = document.getElementById('auth-file-name');
+      nm.textContent = '✅ ' + file.name; nm.style.display = 'block';
+    };
+    rd.readAsDataURL(file);
+  }
+
+  function handlePaymentUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const rd = new FileReader();
+    rd.onload = ev => {
+      paymentFileBase64 = ev.target.result;
+      document.getElementById('payment-upload-area').classList.add('has-file');
+      const nm = document.getElementById('payment-file-name');
+      nm.textContent = '✅ ' + file.name; nm.style.display = 'block';
+    };
+    rd.readAsDataURL(file);
+  }
+
+  // ── Submit Request ──
+  async function submitRequest() {
+    const msgEl   = document.getElementById('req-msg');
+    const spinner = document.getElementById('req-spinner');
+
+    const titleVal = document.querySelector('input[name="title"]:checked')?.value || '';
+    const fName    = document.getElementById('req-fname').value.trim();
+    const gName    = document.getElementById('req-given').value.trim();
+    const mName    = document.getElementById('req-mname').value.trim();
+    const course   = document.getElementById('req-course').value.trim();
+    const phone    = document.getElementById('req-phone').value.trim();
+    const purpose  = document.getElementById('req-purpose').value.trim();
+    const repName  = document.getElementById('req-rep-name').value.trim();
+    const semester = document.getElementById('req-semester').value;
+    const docCodes = Object.keys(selectedDocs);
+    const ayList   = Object.keys(selectedAYs);
+
+    if (!fName || !gName) { showMsg(msgEl, 'error', 'Family Name and First Name are required.'); return; }
+    if (!course)           { showMsg(msgEl, 'error', 'Please enter your last course/program.'); return; }
+    if (!phone)            { showMsg(msgEl, 'error', 'Cellphone number is required.'); return; }
+    if (!/^[0-9]+$/.test(phone)) { showMsg(msgEl, 'error', 'Cellphone number must contain numbers only.'); return; }
+    if (!purpose)          { showMsg(msgEl, 'error', 'Please state the purpose of your request.'); return; }
+    if (!ayList.length)    { showMsg(msgEl, 'error', 'Please select at least one academic year.'); return; }
+    if (!semester)         { showMsg(msgEl, 'error', 'Please select a semester.'); return; }
+    if (!docCodes.length)  { showMsg(msgEl, 'error', 'Please select at least one document.'); return; }
+    if (!paymentFileBase64){ showMsg(msgEl, 'error', 'Please upload proof of payment.'); return; }
+
+    spinner.style.display = 'inline-block';
+
+    const docNames = docCodes.map(c => DOCUMENTS.find(d => d.code === c)?.name || c).join(', ');
+    let total = 0;
+    docCodes.forEach(c => { const d = DOCUMENTS.find(x => x.code === c); if (d) total += d.price; });
+
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 5);
+    const dueDateStr = dueDate.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const reqId = 'REQ-' + Date.now().toString(36).toUpperCase();
+
+    // Determine claim window summary
+    const byWindow = getClaimWindows(docCodes);
+    const windowSummary = Object.keys(byWindow).sort().map(w => 'Window ' + w).join(', ');
+
+    const claimStub = {
+      id:        reqId,
+      title:     titleVal,
+      family_name: fName,
+      first_name:  gName,
+      middle_name: mName,
+      documents:   docCodes,
+      document_names: docNames,
+      academic_years: ayList.join(', '),
+      semester:      semester,
+      total_amount: total,
+      claim_window: windowSummary,
+      due_date:    dueDateStr,
+      email:       currentUser.email,
+      purpose,
+      phone,
+      course,
+      rep_name:    repName || null,
+      payment_proof: paymentFileBase64,
+      auth_file:   authFileBase64 || null,
+      status:      'Pending',
+      created_at:  new Date().toISOString()
+    };
+
+    const { error: dbErr } = await db.from('registrar_requests').insert([{
+      req_id:      reqId,
+      email:       currentUser.email,
+      title:       titleVal,
+      family_name: fName,
+      first_name:  gName,
+      middle_name: mName,
+      course,
+      phone,
+      purpose,
+      rep_name:    repName || null,
+      documents:   docCodes.join(', '),
+      document_names: docNames,
+      academic_years: ayList.join(', '),
+      semester,
+      total_amount: total,
+      due_date:    dueDateStr,
+      claim_window: windowSummary,
+      status:      'Pending',
+      qr_data:     JSON.stringify(claimStub),
+      created_at:  new Date().toISOString()
+    }]);
+
+    if (dbErr) {
+      spinner.style.display = 'none';
+      showMsg(msgEl, 'error', 'Submission failed: ' + dbErr.message);
+      return;
+    }
+
+    spinner.style.display = 'none';
+    showQRModal(claimStub);
+    resetRequestForm();
+  }
+
+  function showQRModal(stub) {
+    const displayEl = document.getElementById('student-qr-display');
+    displayEl.innerHTML = '';
+    const qrText = JSON.stringify({
+      id: stub.id,
+      name: `${stub.title} ${stub.family_name}, ${stub.first_name} ${stub.middle_name}`,
+      docs: stub.document_names,
+      window: stub.claim_window,
+      due: stub.due_date,
+      total: '₱' + stub.total_amount
+    });
+    new QRCode(displayEl, { text: qrText, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.H, colorDark: '#0B2F6E', colorLight: '#FFFFFF' });
+
+    document.getElementById('student-qr-info').innerHTML = `
+      <div class="stub-row"><span class="stub-label">Request ID</span><span class="stub-val" style="font-family:monospace;">${escHtml(stub.id)}</span></div>
+      <div class="stub-row"><span class="stub-label">Name</span><span class="stub-val">${escHtml(stub.title + ' ' + stub.family_name + ', ' + stub.first_name + ' ' + stub.middle_name)}</span></div>
+      <div class="stub-row"><span class="stub-label">Document(s)</span><span class="stub-val">${escHtml(stub.document_names)}</span></div>
+      ${stub.academic_years ? `<div class="stub-row"><span class="stub-label">Academic Year(s)</span><span class="stub-val">${escHtml(stub.academic_years)}</span></div>` : ''}
+      ${stub.semester ? `<div class="stub-row"><span class="stub-label">Semester</span><span class="stub-val">${escHtml(stub.semester)}</span></div>` : ''}
+      <div class="stub-row"><span class="stub-label">Total Amount</span><span class="stub-val" style="color:var(--red);">₱${stub.total_amount.toLocaleString()}</span></div>
+      <div class="stub-row"><span class="stub-label">Due Date</span><span class="stub-val">${escHtml(stub.due_date)}</span></div>`;
+
+    // Render claim window info
+    const winEl = document.getElementById('claim-window-info');
+    if (stub.documents && stub.documents.length) {
+      winEl.innerHTML = renderClaimWindowInfo(stub.documents);
+    } else {
+      winEl.innerHTML = `<div class="stub-row"><span class="stub-label">Claim At</span><span class="stub-val">${escHtml(stub.claim_window)}</span></div>`;
+    }
+
+    document.getElementById('qr-display-modal').classList.add('open');
+  }
+
+  function resetRequestForm() {
+    document.querySelectorAll('input[name="title"]').forEach(r => r.checked = false);
+    ['req-fname','req-given','req-mname','req-course','req-phone','req-purpose','req-rep-name'].forEach(id => document.getElementById(id).value = '');
+    // Reset doc dropdown
+    selectedDocs = {};
+    document.querySelectorAll('#doc-options .cb-option').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('#doc-options input[type=checkbox]').forEach(c => c.checked = false);
+    renderDocTags();
+    updateTotal();
+    // Reset AY dropdown
+    selectedAYs = {};
+    document.querySelectorAll('#ay-options .cb-option').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('#ay-options input[type=checkbox]').forEach(c => c.checked = false);
+    renderAYTags();
+    updateAYTrigger();
+    authFileBase64 = null; paymentFileBase64 = null;
+    ['auth-upload-area','payment-upload-area'].forEach(id => document.getElementById(id).classList.remove('has-file'));
+    ['auth-file-name','payment-file-name'].forEach(id => { const el = document.getElementById(id); el.textContent=''; el.style.display='none'; });
+    document.getElementById('req-semester').value = '';
+    document.getElementById('req-msg').innerHTML = '';
+  }
+
+  // ── History ──
+  async function loadPortalHistory() {
+    if (!currentUser) return;
+    const tbody = document.getElementById('portal-history-body');
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--gray);text-align:center;padding:20px;">Loading…</td></tr>';
+    const { data } = await db.from('registrar_requests').select('*').eq('email', currentUser.email).order('created_at', { ascending: false }).limit(8);
+    renderHistoryRows(tbody, data, 4);
+  }
+
+  async function loadFullHistory() {
+    if (!currentUser) return;
+    const tbody = document.getElementById('full-history-body');
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--gray);text-align:center;padding:20px;">Loading…</td></tr>';
+    const { data } = await db.from('registrar_requests').select('*').eq('email', currentUser.email).order('created_at', { ascending: false });
+    renderHistoryRows(tbody, data, 4);
+  }
+
+  function renderHistoryRows(tbody, data, cols) {
+    if (!data || !data.length) { tbody.innerHTML = `<tr><td colspan="${cols}" style="color:var(--gray);text-align:center;padding:28px;">No requests yet.</td></tr>`; return; }
+    tbody.innerHTML = data.map(r => `<tr>
+      <td style="max-width:200px;font-size:0.84rem;">${escHtml(r.document_names || r.documents || '—')}</td>
+      <td><span class="badge ${r.status==='Pending'?'badge-red':r.status==='Done'||r.status==='Ready'?'badge-green':r.status==='Claimed'?'badge-blue':'badge-gold'}">${r.status}</span></td>
+      <td style="font-size:0.8rem;">${fmtDate(r.created_at)}</td>
+      <td>${r.qr_data ? `<button class="btn-blue" style="padding:4px 10px;font-size:0.75rem;" onclick="viewQRById('${r.req_id}')">📷 QR</button>` : '—'}</td>
+    </tr>`).join('');
+  }
+
+  async function viewQRById(reqId) {
+    const { data } = await db.from('registrar_requests').select('*').eq('req_id', reqId).single();
+    if (!data || !data.qr_data) { alert('QR not available.'); return; }
+    const stub = JSON.parse(data.qr_data);
+    showQRModal(stub);
+  }
+
+  // ── Page routing ──
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    const pg = document.getElementById('page-' + name);
+    if (pg) pg.classList.add('active');
+    const nb = document.getElementById('nav-' + name);
+    if (nb) nb.classList.add('active');
+    if (name === 'history') loadFullHistory();
+    if (name === 'portal') loadPortalHistory();
+  }
+
+  // ── Utilities ──
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+  function escHtml(str) { return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function showMsg(el, type, html) { el.innerHTML = `<div class="msg ${type}">${html}</div>`; el.style.display = 'block'; }
+
+  // ── Init ──
+  loadLogo();
+  buildDocDropdown();
+  buildAYDropdown();
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('page-login').classList.contains('active')) studentLogin();
+  });
+</script>
+</body>
+</html>
