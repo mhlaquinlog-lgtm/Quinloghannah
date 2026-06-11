@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="About Me Page">
+    <meta name="author" content="Hannah Lovely Quinlog">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Me - My Introduction to the World</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Quicksand:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 30px;
+            background: linear-gradient(135deg, #f8d7e8, #e6d9f5);
+            font-family: 'Quicksand', sans-serif;
+            line-height: 1.7;
+        }
+
+        header, footer {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            margin: 0 10px;
+            color: #9b5de5;
+            font-weight: bold;
+        }
+
+        .content-container {
+            max-width: 1000px;
+            margin: auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 12px 30px rgba(128, 90, 170, 0.25);
+        }
+
+        h1 {
+            font-family: 'Pacifico', cursive;
+            color: #a4508b;
+            text-align: center;
+            font-size: 2.6rem;
+        }
+
+        figure {
+            float: left;
+            margin: 0 25px 15px 0;
+            text-align: center;
+        }
+
+        .profile-image {
+            width: 2in;
+            height: 2in;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 3px solid #b185db;
+            cursor: pointer;
+        }
+
+        figcaption {
+            margin-top: 10px;
+        }
+
+        .social-links a {
+            text-decoration: none;
+            color: #4267B2; /* Facebook blue */
+            font-weight: bold;
+        }
+
+        .text-block-1 { color: #5a3d5c; }
+        .text-block-2 { color: #6a4c93; text-align: justify; }
+        .text-block-3 { color: #7b3f8c; text-align: right; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .modal-content {
+            display: block;
+            margin: auto;
+            max-width: 90%;
+            max-height: 90%;
+            margin-top: 5%;
+            border-radius: 15px;
+        }
+    </style>
+</head>
+
+<body>
+</header>
+
+<main>
+<div class="content-container">
+
+    <h1>Hi, I'm Hannah Lovely Quinlog – Let Me Introduce Myself!</h1>
+
+    <section>
+        <figure>
+            <img src="0f673f21-d552-4f91-acfa-5a4a3232a27d.jpg"
+                 alt="A photo of me"
+                 class="profile-image"
+                 onclick="openModal()">
+
+            <figcaption>
+                <div class="social-links">
+                    <a href="https://www.facebook.com/share/1PeQqrVCZB/" target="_blank">
+                        Visit my Facebook
+                    </a>
+                </div>
+            </figcaption>
+        </figure>
+
+        <p class="text-block-1">
+             I was born and raised in Alicia, Bohol, in the beautiful Central Visayas region of the Philippines.
+            Growing up in the province, I developed a deep love for nature and a strong appreciation for the
+            warm, close-knit community that surrounds me every day. My childhood was filled with adventures
+            exploring local beaches, helping with family farming activities, and learning the values of hard
+            work and kindness from my parents and elders.
+        </p>
+
+        <p class="text-block-2">
+             Currently, I am pursuing my passion for Computer Engineering and working to build skills that will
+            help me make a positive impact in my community. I spend much of my free time with my family and making my 		    projects. Beyond my professional interests, I also enjoy my hobbies in cooking, reading, and singing.
+        </p>
+
+        <p class="text-block-3">
+             Looking toward the future, I dream of establishing an initiative that connects young people in rural
+            areas with opportunities for digital skills training and career development. I believe that every
+            individual has unique talents to share with the world, and my goal is to help create pathways for
+            others to thrive. Whether through technology, education, or cultural preservation, I am committed
+            to contributing to a more inclusive and prosperous global community where everyone’s voice can be heard.
+        </p>
+
+        <p style="color:#9b5de5; text-align:center; font-weight:bold; font-family:'Playfair Display', serif;">
+            Thank you for taking the time to get to know me – I look forward to connecting with you!
+        </p>
+    </section>
+
+</div>
+</main>
+
+<footer>
+    <address>
+        Alicia, Bohol, Philippines
+    </address>
+    <p>&copy; <time datetime="2026">2026</time></p>
+</footer>
+
+<div id="imageModal" class="modal" onclick="closeModal()">
+    <img class="modal-content" src="0f673f21-d552-4f91-acfa-5a4a3232a27d.jpg" alt="Enlarged photo">
+</div>
+
+<script>
+    function openModal() {
+        document.getElementById("imageModal").style.display = "block";
+    }
+    function closeModal() {
+        document.getElementById("imageModal").style.display = "none";
+    }
+</script>
+
+<noscript>
+    Your browser does not support JavaScript.
+</noscript>
+
+</body>
+</html>
