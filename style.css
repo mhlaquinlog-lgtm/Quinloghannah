@@ -1,10 +1,190 @@
-body {
-    font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: auto;
-    padding: 20px;
+:root {
+    --brown-dark:   #2C1810;
+    --brown-mid:    #4A2E1A;
+    --brown-light:  #8B7355;
+    --gold:         #C9A87C;
+    --cream:        #FAF7F2;
+    --cream-muted:  #EDE8DF;
+    --white:        #FFFFFF;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body:    'Inter', Arial, sans-serif;
 }
-
-h1 {
-    color: navy;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+    font-family: var(--font-body);
+    background-color: var(--cream);
+    color: var(--brown-dark);
+    font-size: 16px;
+    line-height: 1.7;
+}
+.hero {
+    position: relative;
+    height: 100vh;
+    min-height: 580px;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+}
+.hero-img-wrap {
+    position: absolute;
+    inset: 0;
+}
+.hero-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    filter: brightness(0.55) sepia(0.3);
+}
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(28, 14, 6, 0.92) 0%,
+        rgba(28, 14, 6, 0.3) 55%,
+        transparent 100%
+    );
+}
+.hero-text {
+    position: relative;
+    z-index: 2;
+    padding: 0 6vw 7vh;
+    color: var(--cream);
+}
+.hero-eyebrow {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+}
+.hero-text h1 {
+    font-family: var(--font-display);
+    font-size: clamp(3.2rem, 9vw, 7rem);
+    font-weight: 600;
+    line-height: 1.05;
+    color: var(--white);
+}
+.hero-text h1 em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--gold);
+}
+.hero-sub {
+    margin-top: 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cream-muted);
+    opacity: 0.85;
+}
+.section { padding: 6rem 6vw; }
+.container { max-width: 780px; }
+.section-label {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border-bottom: 1px solid var(--gold);
+    padding-bottom: 3px;
+    margin-bottom: 1.5rem;
+}
+.section h2 {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--brown-dark);
+    margin-bottom: 1.5rem;
+}
+.about {
+    background-color: var(--cream);
+    border-bottom: 1px solid var(--cream-muted);
+}
+.body-text {
+    font-size: 1.05rem;
+    font-weight: 300;
+    color: var(--brown-light);
+    max-width: 560px;
+    line-height: 1.85;
+}
+.projects {
+    background-color: var(--brown-dark);
+}
+.projects .section-label { color: var(--gold); border-color: var(--gold); }
+.projects h2 { color: var(--cream); }
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+}
+.project-card {
+    background-color: var(--brown-mid);
+    border: 1px solid rgba(201, 168, 124, 0.2);
+    border-radius: 4px;
+    padding: 2rem 1.8rem;
+    transition: border-color 0.25s, transform 0.25s;
+}
+.project-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-3px);
+}
+.project-num {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-style: italic;
+    color: var(--gold);
+    opacity: 0.5;
+    line-height: 1;
+    margin-bottom: 0.8rem;
+}
+.project-card h3 {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--cream);
+    margin-bottom: 0.7rem;
+}
+.project-card p {
+    font-size: 0.88rem;
+    font-weight: 300;
+    color: var(--cream-muted);
+    opacity: 0.75;
+    line-height: 1.7;
+}
+.contact {
+    background-color: var(--cream-muted);
+}
+.contact-link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--brown-mid);
+    text-decoration: none;
+    border-bottom: 1px solid var(--gold);
+    padding-bottom: 2px;
+    transition: color 0.2s;
+}
+.contact-link:hover { color: var(--gold); }
+footer {
+    background-color: var(--brown-dark);
+    text-align: center;
+    padding: 1.8rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--brown-light);
+}
+@media (max-width: 600px) {
+    .hero-text { padding: 0 5vw 6vh; }
+    .section   { padding: 4rem 5vw; }
 }
